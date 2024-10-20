@@ -307,7 +307,8 @@ Body Of Replication Of Push Images to Registry Triggered By Event
     Executions Result Count Should Be  Succeeded  event_based  1
     Go Into Project  project${d}
     Delete Repo  project${d}  ${image}
-    Run Keyword If  '${provider}'=='docker-hub' or '${provider}'=='gitlab'  Docker Image Can Not Be Pulled  ${dest_namespace}/${image}:${tag1}
+    Run Keyword If  '${provider}'=='docker-hub'  Docker Image Can Not Be Pulled  ${dest_namespace}/${image}:${tag1}
+    Run Keyword If  '${provider}'=='gitlab'  Docker Image Can Not Be Pulled With Credential  registry.gitlab.com  ${username}  ${pwd}  ${dest_namespace}/${image}:${tag1}
     Switch To Replication Manage
     Filter Replication Rule  rule${d}
     Select Rule  rule${d}
