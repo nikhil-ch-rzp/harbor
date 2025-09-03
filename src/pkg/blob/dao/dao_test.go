@@ -324,6 +324,51 @@ func (suite *DaoTestSuite) TestFindBlobsShouldUnassociatedWithProject() {
 
 }
 
+func (suite *DaoTestSuite) TestFindBlobsShouldUnassociatedWithProjectOptimization() {
+	ctx := suite.Context()
+
+	suite.WithProject(func(projectID int64, projectName string) {
+		// Test with different numbers of blobs to ensure optimization works correctly
+		testCases := []struct {
+			name      string
+			blobCount int
+		}{
+			{"single blob", 1},
+			{"few blobs", 5},
+			{"many blobs", 20},
+		}
+
+		for _, tc := range testCases {
+			suite.T().Run(tc.name, func(t *testing.T) {
+				// Create test blobs
+				var blobs []*models.Blob
+				for i := 0; i < tc.blobCount; i++ {
+					digest := suite.DigestString()
+					blobID, err := suite.dao.CreateBlob(ctx, &models.Blob{Digest: digest})
+					suite.Nil(err)
+
+					blob, err := suite.dao.GetBlobByDigest(ctx, digest)
+					suite.Nil(err)
+					blobs = append(blobs, blob)
+
+					// Associate with project
+					suite.dao.CreateProjectBlob(ctx, projectID, blobID)
+				}
+
+				// All blobs should be associated (empty result)
+				results, err := suite.dao.FindBlobsShouldUnassociatedWithProject(ctx, projectID, blobs)
+				suite.Nil(err)
+				suite.Len(results, tc.blobCount) // All should be unassociated since no artifacts reference them
+
+				// Clean up for next test case
+				for _, blob := range blobs {
+					suite.dao.DeleteBlob(ctx, blob.ID)
+				}
+			})
+		}
+	})
+}
+
 func (suite *DaoTestSuite) TestCreateProjectBlob() {
 	ctx := suite.Context()
 

@@ -39,4 +39,5 @@ type PostGreSQL struct {
 	MaxOpenConns    int           `json:"max_open_conns"`
 	ConnMaxLifetime time.Duration `json:"conn_max_lifetime"`
 	ConnMaxIdleTime time.Duration `json:"conn_max_idle_time"`
+	QueryTimeout    time.Duration `json:"query_timeout"`
 }

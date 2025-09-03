@@ -63,6 +63,7 @@ const (
 	PostGreSQLMaxOpenConns           = "postgresql_max_open_conns"
 	PostGreSQLConnMaxLifetime        = "postgresql_conn_max_lifetime"
 	PostGreSQLConnMaxIdleTime        = "postgresql_conn_max_idle_time"
+	PostGreSQLQueryTimeout           = "postgresql_query_timeout"
 	SelfRegistration                 = "self_registration"
 	CoreURL                          = "core_url"
 	CoreLocalURL                     = "core_local_url"
