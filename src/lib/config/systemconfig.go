@@ -266,6 +266,7 @@ func Database() (*models.Database, error) {
 		MaxOpenConns:    DefaultMgr().Get(backgroundCtx, common.PostGreSQLMaxOpenConns).GetInt(),
 		ConnMaxLifetime: DefaultMgr().Get(backgroundCtx, common.PostGreSQLConnMaxLifetime).GetDuration(),
 		ConnMaxIdleTime: DefaultMgr().Get(backgroundCtx, common.PostGreSQLConnMaxIdleTime).GetDuration(),
+		QueryTimeout:    DefaultMgr().Get(backgroundCtx, common.PostGreSQLQueryTimeout).GetDuration(),
 	}
 	database.PostGreSQL = postgresql
 

@@ -50,6 +50,7 @@ func main() {
 			MaxOpenConns:    viper.GetInt("database.max_open_conns"),
 			ConnMaxLifetime: getConnMaxLifetime(viper.GetString("database.conn_max_lifetime")),
 			ConnMaxIdleTime: getConnMaxIdleTime(viper.GetString("database.conn_max_idle_time")),
+			QueryTimeout:    getQueryTimeout(viper.GetString("database.query_timeout")),
 		},
 	}
 	if err := dao.InitDatabase(dbCfg); err != nil {
@@ -129,4 +130,16 @@ func getConnMaxIdleTime(duration string) time.Duration {
 	}
 
 	return connMaxIdleTime
+}
+
+func getQueryTimeout(strTime string) time.Duration {
+	if strTime == "" {
+		return 10 * time.Minute // Default timeout
+	}
+	queryTimeout, err := time.ParseDuration(strTime)
+	if err != nil {
+		log.Warningf("Invalid query timeout, setting 10m by default")
+		return 10 * time.Minute
+	}
+	return queryTimeout
 }

@@ -46,6 +46,7 @@ type pgsql struct {
 	maxOpenConns    int
 	connMaxLifetime time.Duration
 	connMaxIdleTime time.Duration
+	queryTimeout    time.Duration
 }
 
 // Name returns the name of PostgreSQL
@@ -60,7 +61,7 @@ func (p *pgsql) String() string {
 }
 
 // NewPGSQL returns an instance of postgres
-func NewPGSQL(host string, port string, usr string, pwd string, database string, sslmode string, maxIdleConns int, maxOpenConns int, connMaxLifetime time.Duration, connMaxIdleTime time.Duration) Database {
+func NewPGSQL(host string, port string, usr string, pwd string, database string, sslmode string, maxIdleConns int, maxOpenConns int, connMaxLifetime time.Duration, connMaxIdleTime time.Duration, queryTimeout time.Duration) Database {
 	if len(sslmode) == 0 {
 		sslmode = "disable"
 	}
@@ -75,6 +76,7 @@ func NewPGSQL(host string, port string, usr string, pwd string, database string,
 		maxOpenConns:    maxOpenConns,
 		connMaxLifetime: connMaxLifetime,
 		connMaxIdleTime: connMaxIdleTime,
+		queryTimeout:    queryTimeout,
 	}
 }
 
@@ -92,8 +94,16 @@ func (p *pgsql) Register(alias ...string) error {
 	if len(alias) != 0 {
 		an = alias[0]
 	}
-	info := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s timezone=UTC",
-		p.host, p.port, p.usr, p.pwd, p.database, p.sslmode)
+	var info string
+	if p.queryTimeout > 0 {
+		// Convert timeout to milliseconds for PostgreSQL statement_timeout
+		timeoutMs := int(p.queryTimeout.Milliseconds())
+		info = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s timezone=UTC statement_timeout=%d",
+			p.host, p.port, p.usr, p.pwd, p.database, p.sslmode, timeoutMs)
+	} else {
+		info = fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s timezone=UTC",
+			p.host, p.port, p.usr, p.pwd, p.database, p.sslmode)
+	}
 
 	if err := orm.RegisterDataBase(an, "pgx", info, orm.MaxIdleConnections(p.maxIdleConns),
 		orm.MaxOpenConnections(p.maxOpenConns), orm.ConnMaxLifetime(p.connMaxLifetime)); err != nil {
