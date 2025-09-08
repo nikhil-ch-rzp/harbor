@@ -92,8 +92,14 @@ func (p *pgsql) Register(alias ...string) error {
 	if len(alias) != 0 {
 		an = alias[0]
 	}
-	info := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s timezone=UTC",
-		p.host, p.port, p.usr, p.pwd, p.database, p.sslmode)
+
+	queryTimeout := time.Duration(20 * time.Minute)
+
+	// query timeout in milliseconds
+	queryTimeoutMs := int(queryTimeout.Milliseconds())
+
+	info := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s timezone=UTC statement_timeout=%d",
+		p.host, p.port, p.usr, p.pwd, p.database, p.sslmode, queryTimeoutMs)
 
 	if err := orm.RegisterDataBase(an, "pgx", info, orm.MaxIdleConnections(p.maxIdleConns),
 		orm.MaxOpenConnections(p.maxOpenConns), orm.ConnMaxLifetime(p.connMaxLifetime)); err != nil {
@@ -106,11 +112,11 @@ func (p *pgsql) Register(alias ...string) error {
 	}
 	db.SetConnMaxIdleTime(p.connMaxIdleTime)
 
-	// Set statement timeout for all queries in this session (10 minutes)
-	_, err = db.Exec("SET statement_timeout = '20min'")
-	if err != nil {
-		log.Warningf("Failed to set statement_timeout: %v", err)
-	}
+	// // Set statement timeout for all queries in this session (10 minutes)
+	// _, err = db.Exec("SET statement_timeout = '20min'")
+	// if err != nil {
+	// 	log.Warningf("Failed to set statement_timeout: %v", err)
+	// }
 
 	return nil
 }
